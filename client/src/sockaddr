@@ -1,0 +1,136 @@
+libnetlink(3)            Library Functions Manual            libnetlink(3)
+
+NNAAMMEE
+       libnetlink - A library for accessing the netlink service
+
+SSYYNNOOPPSSIISS
+       #include <asm/types.h>
+       #include <libnetlink.h>
+       #include <linux/netlink.h>
+       #include <linux/rtnetlink.h>
+
+       int rtnl_open(struct rtnl_handle *rth, unsigned subscriptions)
+
+       int rtnl_wilddump_request(struct rtnl_handle *rth, int family, int type)
+
+       int rtnl_send(struct rtnl_handle *rth, char *buf, int len)
+
+       int rtnl_dump_request(struct rtnl_handle *rth, int type, void *req, int len)
+
+       int rtnl_dump_filter(struct rtnl_handle *rth,
+                      int (*filter)(struct sockaddr_nl *, struct nlmsghdr *n, void *),
+                      void *arg1,
+                      int (*junk)(struct sockaddr_nl *,struct nlmsghdr *n, void *),
+                      void *arg2)
+
+       int rtnl_talk(struct rtnl_handle *rtnl, struct nlmsghdr *n, pid_t peer,
+                  unsigned groups, struct nlmsghdr *answer,
+                  int (*junk)(struct sockaddr_nl *,struct nlmsghdr *n, void *),
+                  void *jarg)
+
+       int rtnl_listen(struct rtnl_handle *rtnl,
+                  int (*handler)(struct sockaddr_nl *, struct rtnl_ctrl_data *,
+                           struct nlmsghdr *n, void *),
+                  void *jarg)
+
+       int rtnl_from_file(FILE *rtnl,
+                  int (*handler)(struct sockaddr_nl *,struct nlmsghdr *n, void *),
+                  void *jarg)
+
+       int addattr32(struct nlmsghdr *n, int maxlen, int type, __u32 data)
+
+       int addattr_l(struct nlmsghdr *n, int maxlen, int type, void *data, int alen)
+
+       int rta_addattr32(struct rtattr *rta, int maxlen, int type, __u32 data)
+
+       int rta_addattr_l(struct rtattr *rta, int maxlen, int type, void *data, int alen)
+
+DDEESSCCRRIIPPTTIIOONN
+       libnetlink  provides a higher level interface to rrttnneettlliinnkk((77))..  The
+       read functions return 0 on success and a negative errno on failure.
+       The send functions return the amount of data sent, or -1 on error.
+
+       rtnl_open
+              Open a rtnetlink socket and save the state into the rrtthh han‐
+              dle. This handle is passed to all  subsequent  calls.   ssuubb‐‐
+              ssccrriippttiioonnss is a bitmap of the rtnetlink multicast groups the
+              socket will be a member of.
+
+       rtnl_wilddump_request
+              Request  a  full  dump  of  the  ttyyppee  database  for  ffaammiillyy
+              addresses.  ttyyppee is a rtnetlink message type.
+
+       rtnl_dump_request
+              Request  a  full  dump of the ttyyppee data buffer into bbuuff with
+              maximum length of lleenn..  ttyyppee is a rtnetlink message type.
+
+       rtnl_dump_filter
+              Receive netlink data after a request  and  filter  it.   The
+              ffiilltteerr callback checks if the received message is wanted. It
+              gets the source address of the message, the  message  itself
+              and  aarrgg11  as  arguments.  0 as return means that the filter
+              passed, a negative value is returned by _r_t_n_l___d_u_m_p___f_i_l_t_e_r  in
+              case  of  error.  NULL for _f_i_l_t_e_r means to not use a filter.
+              jjuunnkk is used to filter messages not destined  to  the  local
+              socket.   Only one message bundle is received. If there is a
+              message pending, this function does not block.
+
+       rtnl_listen
+              Receive netlink data after a request and pass it to _h_a_n_d_l_e_r_.
+              hhaannddlleerr  is a callback that gets the message source address,
+              anscillary data, the message itself, and the jjaarrgg cookie  as
+              arguments.  It  will  get  called for all received messages.
+              Only one message bundle is received. If there is  a  message
+              pending this function does not block.
+
+       rtnl_from_file
+              Works  like  _r_t_n_l___l_i_s_t_e_n_, but reads a netlink message bundle
+              from the file ffiillee and passes the messages  to  hhaannddlleerr  for
+              parsing. The file should contain raw data as received from a
+              rtnetlink socket.
+
+       The following functions are useful to  construct  custom  rtnetlink
+       messages.  For  simple database dumping with filtering it is better
+       to use the higher  level  functions  above.  See  rrttnneettlliinnkk((33))  and
+       nneettlliinnkk((33))  on  how  to generate a rtnetlink message. The following
+       utility functions require a continuous buffer that already contains
+       a netlink message header and a rtnetlink request.
+
+       rtnl_send
+              Send  the  rtnetlink  message in bbuuff of length lleenn to handle
+              rrtthh..
+
+       addattr32
+              Add a __u32 attribute of type ttyyppee and with  value  ddaattaa  to
+              netlink  message  nn,,  which  is  part  of a buffer of length
+              mmaaxxlleenn..
+
+       addattr_l
+              Add a variable length attribute of type ttyyppee and with  value
+              ddaattaa  and aalleenn length to netlink message nn,, which is part of
+              a buffer of length mmaaxxlleenn..  ddaattaa is copied.
+
+       rta_addattr32
+              Initialize the rtnetlink attribute rrttaa  with  a  __u32  data
+              value.
+
+       rta_addattr32
+              Initialize  the  rtnetlink  attribute  rrttaa  with  a variable
+              length data value.
+
+BBUUGGSS
+       This library is meant for internal use, use  libmnl  for  new  pro‐
+       grams.
+
+       The  functions  sometimes  use  fprintf and exit when a fatal error
+       occurs.  This library should be named librtnetlink.
+
+AAUUTTHHOORRSS
+       netlink/rtnetlink was designed and  written  by  Alexey  Kuznetsov.
+       Andi Kleen wrote the man page.
+
+SSEEEE AALLSSOO
+       nneettlliinnkk((77)),, rrttnneettlliinnkk((77))
+       /usr/include/linux/rtnetlink.h
+
+                                                             libnetlink(3)
